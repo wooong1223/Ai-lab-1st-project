@@ -1,0 +1,58 @@
+#<CSV파일 속 제목 불러오기>
+from konlpy.tag import Hannanum
+import csv
+# CSV 파일 열 읽기
+def read_csv_column(csv_file, column_name):
+    with open(csv_file, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        column_data = [row[column_name] for row in reader]
+    return column_data
+
+# CSV 파일 경로
+csv_file_path = r'C:\Users\user\Desktop\Upstage_AI_lab\Project_1st\naver_IT_news.csv'
+
+# 특정 열의 데이터 읽어오기
+news_titles = read_csv_column(csv_file_path, '제목')
+
+hannanum = Hannanum()
+ex_nouns = [] # 단어 저장
+
+for sent in news_titles: # doc -> sentence
+    for noun in hannanum.nouns(sent) : # sentence -> noun
+        ex_nouns.append(noun)
+ex_nouns
+
+#>제목 데이터 전처리>
+from re import match
+
+nouns_count = {} # 빈 set
+
+for noun in ex_nouns :
+    # 2음절 이상, 숫자 제외
+    if len(str(noun)) > 1 and not(match('^[0-9]', noun)) :
+        nouns_count[noun] = nouns_count.get(noun, 0) + 1
+nouns_count
+
+#<빈도수 높은 2000개 모으기>
+from collections import Counter
+
+counter = Counter(nouns_count)
+top2000 = counter.most_common(n=2000)
+top2000
+
+#<word cloud 생성>
+import pytagcloud
+import webbrowser
+
+# tag에 color, size, tag 사전 구성 
+word_count_list = pytagcloud.make_tags(top2000, maxsize=100.0)
+# maxsize : 최대 글자크기
+print(word_count_list)
+
+pytagcloud.create_tag_image(word_count_list,
+                            'newsCrawling.jpg', 
+                            size=(1400, 700), 
+                            fontname='korean', rectangular=False)
+
+ 
+webbrowser.open('wordcloud.jpg')
