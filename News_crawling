@@ -1,0 +1,33 @@
+from selenium import webdriver
+#네이버 IT카테고리 뉴스 크롤링
+#더보기랑 본문내용은 못가져옴
+
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from datetime import datetime, timedelta
+import pandas as pd
+
+IT_news_list = []
+yesterday = datetime.today() - timedelta(1)
+yesterday_date = yesterday.strftime("%Y%m%d")
+
+for i in [731,226,227,230,732,283,229,228]:
+    category = i
+    browser = webdriver.Chrome()
+    url = f'https://news.naver.com/breakingnews/section/105/{category}?date={yesterday_date}'
+    browser.get(url)
+
+    parent = browser.find_element(By.CLASS_NAME,'section_latest')
+    news_container = parent.find_elements(By.CLASS_NAME, 'sa_text')
+
+    for elem in news_container:
+        title = elem.find_element(By.CLASS_NAME,'sa_text_title').text
+        press = elem.find_element(By.CLASS_NAME,'sa_text_press').text
+        link = elem.find_element(By.CLASS_NAME,'sa_text_title').get_attribute('href')
+        IT_news_list.append({
+        '제목':title,
+        '언론사':press,
+        '링크':link
+        })
+df = pd.DataFrame(IT_news_list)
+df.to_csv('naver_IT_news.csv',encoding='UTF-8-sig')
